@@ -1,2 +1,2 @@
 # controle-produto
-Estrud
+Estudo de HTML para Javascript
