@@ -1,76 +1,76 @@
-let descricaoCategoria = document.getElementById('descricao')
-let btnSalvar = document.getElementById('btnSalvar')
-
 let categorias = []
 let indexEditado = null
 
-function renderizarTabela() {
-  let linha = ''
-  categorias.forEach((c, index) => {
-    linha += `
-      <tr>
-        <td>${c.codigo}</td>
-        <td>${c.descricao}</td>
-        <td>
-          <button onclick="editarCategoria(${index})" class="btn btn-md bg-warning">Editar</button>
-          <button onclick="removerCategoria(${index})" class="btn btn-md bg-danger text-light">Remover</button>
-        </td>
-      </tr>
-    `
-  })
-  document.getElementById('categorias').innerHTML = linha
+const nmCategoria = document.getElementById('nmCategoria')
+const btnSalvar = document.getElementById('btnSalvar')
+const tabelaCategorias = document.getElementById('categorias')
+
+window.onload = () => {
+  const dadosSalvos = localStorage.getItem('categoriaStorage')
+  if (dadosSalvos) {
+    categorias = JSON.parse(dadosSalvos)
+    renderizarCategorias()
+  }
 }
 
-function validarCampos() {
-  if (descricaoCategoria.value.trim() === '') {
-    alert('A descrição da categoria não pode ficar vazia.')
-    descricaoCategoria.focus()
-    return false
-  }
-  return true
+function salvarLocalStorage() {
+  localStorage.setItem('categoriaStorage', JSON.stringify(categorias))
+}
+
+function renderizarCategorias() {
+  tabelaCategorias.innerHTML = ''
+  categorias.forEach((cat, index) => {
+    const tr = document.createElement('tr')
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${cat}</td>
+      <td>
+        <button class="btn btn-sm btn-warning me-2" onclick="editarCategoria(${index})">Editar</button>
+        <button class="btn btn-sm btn-danger" onclick="removerCategoria(${index})">Remover</button>
+      </td>
+    `
+    tabelaCategorias.appendChild(tr)
+  })
 }
 
 function addCategoria() {
-  if (!validarCampos()) return
-  categorias.push({
-    codigo: categorias.length + 1,
-    descricao: descricaoCategoria.value
-  })
-  limparCampos()
-  renderizarTabela()
+  const valor = nmCategoria.value.trim()
+  if (!valor) {
+    alert('Por favor, informe um nome de categoria.')
+    return
+  }
+
+  if (indexEditado === null) {
+    categorias.push(valor)
+  } else {
+    categorias[indexEditado] = valor
+    indexEditado = null
+    btnSalvar.textContent = 'Cadastrar categoria'
+  }
+
+  nmCategoria.value = ''
+  nmCategoria.focus()
+  salvarLocalStorage()
+  renderizarCategorias()
 }
 
 function editarCategoria(index) {
-  const categoria = categorias[index]
-  descricaoCategoria.value = categoria.descricao
+  nmCategoria.value = categorias[index]
   indexEditado = index
-  btnSalvar.innerText = 'Editar Categoria'
-  btnSalvar.onclick = atualizarCategoria
-}
-
-function atualizarCategoria() {
-  if (!validarCampos()) return
-  categorias[indexEditado].descricao = descricaoCategoria.value
-  indexEditado = null
-  btnSalvar.innerText = 'Adicionar Categoria'
-  btnSalvar.onclick = addCategoria
-  limparCampos()
-  renderizarTabela()
+  btnSalvar.textContent = 'Salvar Edição'
 }
 
 function removerCategoria(index) {
-  categorias.splice(index, 1)
-  categorias.forEach((c, i) => c.codigo = i + 1)
-  renderizarTabela()
+  if (confirm('Tem certeza que deseja remover esta categoria?')) {
+    categorias.splice(index, 1)
+    salvarLocalStorage()
+    renderizarCategorias()
+    if (indexEditado === index) {
+      indexEditado = null
+      nmCategoria.value = ''
+      btnSalvar.textContent = 'Cadastrar categoria'
+    }
+  }
 }
 
-function limparCampos() {
-  descricaoCategoria.value = ''
-  descricaoCategoria.focus()
-}
-
-// Inicializa botão para adicionar
 btnSalvar.onclick = addCategoria
-
-// Inicializa tabela vazia
-renderizarTabela()
